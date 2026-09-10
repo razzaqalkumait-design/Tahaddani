@@ -1,6 +1,8 @@
-import { Image, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Image, Modal, Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
 import { useContext } from 'react';
+import Slider from '@react-native-community/slider';
 import { AccountCtx } from '../contexts/AccountContext';
+import { AudioCtx } from '../contexts/AudioContext';
 import { IMAGES } from '../theme/cards';
 import { colors, fontFamily, radii, spacing } from '../theme/tokens';
 import { strings } from '../i18n';
@@ -16,6 +18,7 @@ function Row({ label, value }: { label: string; value: string }) {
 
 export function SettingsModal({ visible, onClose }: { visible: boolean; onClose: () => void }) {
   const { account, logout } = useContext(AccountCtx);
+  const { musicOn, setMusicOn, volume, setVolume } = useContext(AudioCtx);
 
   return (
     <Modal
@@ -32,6 +35,35 @@ export function SettingsModal({ visible, onClose }: { visible: boolean; onClose:
             <View style={styles.header}>
               <Image source={IMAGES.settingsWhite} style={styles.headerIcon} resizeMode="contain" />
               <Text style={styles.title}>{strings.settings.title}</Text>
+            </View>
+
+            {/* Music toggle + volume — twin of the web build's MusicSettingsRows */}
+            <View style={styles.musicRow}>
+              <Text style={styles.musicLabel}>{strings.music.title}</Text>
+              <Switch
+                value={musicOn}
+                onValueChange={setMusicOn}
+                trackColor={{ true: colors.green, false: 'rgba(255,255,255,.18)' }}
+                thumbColor="#fff"
+              />
+            </View>
+            <View>
+              <View style={styles.musicRow}>
+                <Text style={styles.musicLabel}>{strings.music.volume}</Text>
+                <Text style={styles.musicValue}>{volume}%</Text>
+              </View>
+              <Slider
+                minimumValue={0}
+                maximumValue={100}
+                step={1}
+                value={volume}
+                onValueChange={setVolume}
+                minimumTrackTintColor={colors.cyan}
+                maximumTrackTintColor="rgba(255,255,255,.15)"
+                thumbTintColor={colors.offWhite}
+                disabled={!musicOn}
+                style={[styles.musicSlider, !musicOn && styles.musicSliderOff]}
+              />
             </View>
 
             <Row label={strings.settings.language} value={strings.settings.languageValue} />
@@ -74,6 +106,11 @@ const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   rowLabel: { fontFamily: fontFamily.bold, fontSize: 14, color: 'rgba(255,255,255,.55)' },
   rowValue: { fontFamily: fontFamily.black, fontSize: 14, color: colors.cyan },
+  musicRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  musicLabel: { fontFamily: fontFamily.bold, fontSize: 15, color: 'rgba(255,255,255,.65)' },
+  musicValue: { fontFamily: fontFamily.black, fontSize: 14, color: colors.cyan },
+  musicSlider: { width: '100%', height: 34, marginTop: 2 },
+  musicSliderOff: { opacity: 0.4 },
   divider: { height: 1, backgroundColor: 'rgba(255,255,255,.1)' },
   logout: { paddingVertical: spacing.md, alignItems: 'center', borderRadius: radii.md, borderWidth: 1, borderColor: colors.pink },
   logoutLabel: { fontFamily: fontFamily.black, fontSize: 14, color: colors.pink },

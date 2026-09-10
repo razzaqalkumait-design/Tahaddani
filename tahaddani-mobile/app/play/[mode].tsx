@@ -30,7 +30,7 @@ const RECORD_KEYS: Partial<Record<GameMode, string>> = {
 
 function PlayRoute() {
   const router = useRouter();
-  const { mode, online } = useLocalSearchParams<{ mode?: string; online?: string }>();
+  const { mode, online, join, host } = useLocalSearchParams<{ mode?: string; online?: string; join?: string; host?: string }>();
   const { rewardGameEnd } = useRewards();
 
   const wicked = mode === 'wicked';
@@ -98,8 +98,9 @@ function PlayRoute() {
   );
 
   if (mode === 'solo') return <SoloGameScreen onBack={goHome} />;
-  if (mode === 'guess') return <GuessGameScreen onEnd={handleOnlineEnd} onBack={goHome} />;
-  if (mode === 'thirty' && isOnline) return <OnlineThirtyGameScreen onEnd={handleOnlineEnd} onBack={goHome} />;
+  if (mode === 'guess') return <GuessGameScreen onEnd={handleOnlineEnd} onBack={goHome} autoJoinCode={join} hostCode={host} />;
+  if (mode === 'thirty' && isOnline)
+    return <OnlineThirtyGameScreen onEnd={handleOnlineEnd} onBack={goHome} autoJoinCode={join} hostCode={host} />;
   if (boardMode && isOnline)
     return (
       <OnlineClassicGameScreen
@@ -107,6 +108,8 @@ function PlayRoute() {
         wicked={wicked}
         onEnd={handleOnlineEnd}
         onBack={goHome}
+        autoJoinCode={join}
+        hostCode={host}
       />
     );
 

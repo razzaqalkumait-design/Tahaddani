@@ -37,9 +37,13 @@ const THIRTY_ONLINE_TIMER = 60;
 export function OnlineThirtyGameScreen({
   onEnd,
   onBack,
+  autoJoinCode,
+  hostCode,
 }: {
   onEnd: (scores: [number, number], names: [string, string]) => void;
   onBack: () => void;
+  autoJoinCode?: string;
+  hostCode?: string;
 }) {
   const { account } = useAccount();
   const [phase, setPhase] = useState<UiPhase>('menu');
@@ -139,6 +143,26 @@ export function OnlineThirtyGameScreen({
     channelRef.current = channel;
     if (seat === 1) announceJoin(channel, name);
   }, []);
+
+  // auto-join when launched from a friend invite (web OnlineClassicGame)
+  useEffect(() => {
+    if (!autoJoinCode || !myName.trim()) return;
+    const code = autoJoinCode.toUpperCase();
+    setRoomCode(code);
+    setMySeat(1);
+    void openChannel(code, 1, myName.trim()).then(() => setPhase('joining'));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoJoinCode]);
+
+  // host a room when launched from a challenge (web OnlineClassicGame)
+  useEffect(() => {
+    if (!hostCode || !myName.trim()) return;
+    const code = hostCode.toUpperCase();
+    setRoomCode(code);
+    setMySeat(0);
+    void openChannel(code, 0, myName.trim()).then(() => setPhase('creating'));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hostCode]);
 
   const create = async () => {
     if (!myName.trim()) {

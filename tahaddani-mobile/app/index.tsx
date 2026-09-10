@@ -15,6 +15,8 @@ import { strings } from '../src/i18n';
 import { CrownIcon, GlobeIcon, SparkleIcon, SpinWheelIcon } from '../src/components/icons';
 import { AuthModal } from '../src/components/AuthModal';
 import { SettingsModal } from '../src/components/SettingsModal';
+import { ProfileModal } from '../src/components/ProfileModal';
+import { AvatarGlyph } from '../src/components/AvatarGlyph';
 
 /** Modes that offer an online match alongside the local one. */
 const ONLINE_MODES: readonly MenuMode[] = ['classic', 'wicked', 'thirty'];
@@ -30,6 +32,7 @@ export default function HomeScreen() {
   const [selected, setSelected] = useState<MenuMode | null>(null);
   const [authVisible, setAuthVisible] = useState(false);
   const [settingsVisible, setSettingsVisible] = useState(false);
+  const [profileVisible, setProfileVisible] = useState(false);
   const isFree = tier === 'free';
   const locked = !accountLoading && (!account || !account.emailVerified);
 
@@ -94,10 +97,11 @@ export default function HomeScreen() {
             />
             <Pressable
               style={styles.accountButton}
-              onPress={() => setAuthVisible(true)}
+              onPress={() => (account ? setProfileVisible(true) : setAuthVisible(true))}
               accessibilityRole="button"
               accessibilityLabel={account ? account.name : strings.home.signup}
             >
+              {account ? <AvatarGlyph avatar={account.avatar} size={22} /> : null}
               {account && tier === 'vip' ? <CrownIcon size={14} color={colors.gold} /> : null}
               <Text style={styles.accountLabel} numberOfLines={1}>
                 {account ? account.name : strings.home.signup}
@@ -170,6 +174,7 @@ export default function HomeScreen() {
 
       <AuthModal visible={authVisible} onClose={() => setAuthVisible(false)} />
       <SettingsModal visible={settingsVisible} onClose={() => setSettingsVisible(false)} />
+      <ProfileModal visible={profileVisible} onClose={() => setProfileVisible(false)} />
     </View>
   );
 }

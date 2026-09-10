@@ -1,7 +1,9 @@
+import { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import type { ReactNode } from 'react';
 import { colors, fontFamily, radii, spacing } from '../theme/tokens';
 import { WinnerPanel } from './WinnerPanel';
+import { Confetti } from './Confetti';
 import { strings } from '../i18n';
 
 export interface StandingRow {
@@ -37,8 +39,16 @@ export function ResultScreen({
   coinsEarned,
   children,
 }: ResultScreenProps) {
+  // Same timing as the web EndScreen: confetti 200ms after mount.
+  const [confetti, setConfetti] = useState(false);
+  useEffect(() => {
+    const timer = setTimeout(() => setConfetti(true), 200);
+    return () => clearTimeout(timer);
+  }, []);
+
   return (
     <View style={styles.screen}>
+      <Confetti active={confetti} />
       <View style={styles.winnerSide}>
         <WinnerPanel names={winnerName} points={topPoints} isTie={isTie} ctaLabel={ctaLabel} onCta={onCta} />
       </View>

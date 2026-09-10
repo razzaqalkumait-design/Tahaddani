@@ -142,5 +142,8 @@ export const StorageKeys = {
   daily: 'ta_daily',
   gameStreak: 'ta_game_streak',
   xp: 'ta_xp',
+  /** Music toggle + volume, same key names as the web build's localStorage. */
+  music: 'ta_music',
+  volume: 'ta_volume',
 } as const;
 

@@ -14,6 +14,8 @@ import {
 import { AccountProvider } from '../src/contexts/AccountContext';
 import { CoinsProvider } from '../src/contexts/CoinsContext';
 import { SubProvider } from '../src/contexts/SubContext';
+import { AudioProvider } from '../src/contexts/AudioContext';
+import { InviteListener } from '../src/components/InviteListener';
 import { ErrorBoundary } from '../src/components/ErrorBoundary';
 import { colors } from '../src/theme/tokens';
 
@@ -49,13 +51,17 @@ export default function RootLayout() {
         <AccountProvider>
           <SubProvider>
             <CoinsProvider>
-              <StatusBar style="dark" />
-              <Stack
-                screenOptions={{
-                  headerShown: false,
-                  contentStyle: { backgroundColor: colors.background },
-                }}
-              />
+              <AudioProvider>
+                <StatusBar style="dark" />
+                <Stack
+                  screenOptions={{
+                    headerShown: false,
+                    contentStyle: { backgroundColor: colors.background },
+                  }}
+                />
+                {/* Friend-invite banner, visible over any screen (web parity). */}
+                <InviteListener />
+              </AudioProvider>
             </CoinsProvider>
           </SubProvider>
         </AccountProvider>

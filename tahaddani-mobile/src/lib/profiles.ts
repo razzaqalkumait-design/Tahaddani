@@ -144,6 +144,70 @@ export async function removeFriend(friendshipId: string): Promise<void> {
   if (error) logger.error('Friend removal failed', error);
 }
 
+/** Ported from the web build's getFriendshipStatus (src/supabase.ts). */
+export async function getFriendshipStatus(
+  userId: string,
+  otherId: string,
+): Promise<{ id: string; status: 'pending' | 'accepted'; direction: 'sent' | 'received' } | null> {
+  const rowSchema = z.object({
+    id: z.string(),
+    requester_id: z.string(),
+    status: z.enum(['pending', 'accepted']).catch('pending'),
+  });
+
+  const { data } = await supabase
+    .from('friendships')
+    .select('id, requester_id, status')
+    .or(`and(requester_id.eq.${userId},addressee_id.eq.${otherId}),and(requester_id.eq.${otherId},addressee_id.eq.${userId})`)
+    .single();
+
+  const parsed = rowSchema.safeParse(data);
+  if (!parsed.success) return null;
+  return {
+    id: parsed.data.id,
+    status: parsed.data.status,
+    direction: parsed.data.requester_id === userId ? 'sent' : 'received',
+  };
+}
+
+/** Ported from the web build's uploadAvatar (src/supabase.ts). */
+export async function uploadAvatar(
+  userId: string,
+  file: { name: string; type: string; base64: string },
+): Promise<{ url: string; error: null } | { url: null; error: string }> {
+  const ext = file.name.split('.').pop() ?? 'jpg';
+  const path = `${userId}/avatar.${ext}`;
+  const binary = base64ToUint8Array(file.base64);
+  const { error } = await supabase.storage.from('avatars').upload(path, binary, {
+    upsert: true,
+    contentType: file.type,
+  });
+  if (error) {
+    logger.error('[uploadAvatar]', error.message, { userId });
+    return { url: null, error: error.message };
+  }
+  const { data } = supabase.storage.from('avatars').getPublicUrl(path);
+  return { url: data.publicUrl + '?t=' + Date.now(), error: null };
+}
+
+/** Minimal base64→bytes decoder (Hermes has no atob). */
+function base64ToUint8Array(base64: string): Uint8Array {
+  const clean = base64.replace(/[^A-Za-z0-9+/]/g, '');
+  const lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+  const idx = (ch: string | undefined): number => (ch ? lookup.indexOf(ch) : -1);
+  const bytes: number[] = [];
+  for (let i = 0; i < clean.length; i += 4) {
+    const a = idx(clean[i]);
+    const b = idx(clean[i + 1]);
+    const c = idx(clean[i + 2]);
+    const d = idx(clean[i + 3]);
+    bytes.push((a << 2) | (b >> 4));
+    if (c !== -1) bytes.push(((b & 15) << 4) | (c >> 2));
+    if (d !== -1) bytes.push(((c & 3) << 6) | d);
+  }
+  return new Uint8Array(bytes);
+}
+
 export async function getFriends(userId: string): Promise<FriendEntry[]> {
   const rowSchema = z.object({
     id: z.string(),

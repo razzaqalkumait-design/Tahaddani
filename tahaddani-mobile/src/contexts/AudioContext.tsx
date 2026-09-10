@@ -11,8 +11,8 @@ import { logger } from '../lib/logger';
  * <audio> element with an on/off toggle and a 0–100 volume slider,
  * persisted under the keys `ta_music` / `ta_volume`. This port keeps the
  * exact same state shape, defaults (music on, volume 70) and persisted key
- * names; the mp3 is streamed from the deployed site (same asset the web
- * build serves) so no binary ships in the bundle.
+ * names; the mp3 is bundled from `assets/music/background.mp3` (same file
+ * as the web build — drop it there before bundling).
  */
 export interface AudioState {
   musicOn: boolean;
@@ -28,15 +28,15 @@ export const AudioCtx = createContext<AudioState>({
   setVolume: () => {},
 });
 
-/** The web build's own background track, served from the deployed site. */
-const BACKGROUND_MUSIC_URL = 'https://tahaddani.win/music/background.mp3';
+/** The web build's own background track, bundled as a local asset. */
+const backgroundMusic = require('../../assets/music/background.mp3');
 
 export function AudioProvider({ children }: { children: ReactNode }) {
   const [musicOn, setMusicOnState] = useState(true);
   const [volume, setVolumeState] = useState(70);
   const [hydrated, setHydrated] = useState(false);
 
-  const player = useAudioPlayer(BACKGROUND_MUSIC_URL);
+  const player = useAudioPlayer(backgroundMusic);
 
   // Restore the persisted toggle/volume (same keys as the web build).
   useEffect(() => {
